@@ -1,0 +1,49 @@
+name: Node.js Docker CI
+
+# Run this workflow whenever code is pushed or a pull request is opened for the 'main' branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Define the jobs to run as part of this workflow
+jobs:
+  build:
+
+    # The job will run on the latest Ubuntu version
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js (14.x) environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Build Docker image
+      - name: Build Docker image
+        run: docker build -t my-app .
+
+      # Step 5: Run the Docker container
+      - name: Run Docker container
+        run: docker run -d -p 3000:3000 my-app
+
+      # Step 6: Verify that the app is running
+      - name: Verify app is running
+        run: curl --retry 5 --retry-delay 5 --retry-connrefused http://localhost:3000
+
+      # Step 7: Stop the Docker container
+      - name: Stop Docker container
+        run: docker ps -q | xargs -r docker stop
+

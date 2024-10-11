@@ -38,12 +38,16 @@ jobs:
       # Step 5: Run the Docker container
       - name: Run Docker container
         run: docker run -d -p 3000:3000 my-app
+        
+        # Step 6: Wait for the server to start
+      - name: Wait for the server to start
+        run: sleep 10
 
-      # Step 6: Verify that the app is running
+      # Step 7: Verify that the app is running
       - name: Verify app is running
         run: curl --retry 5 --retry-delay 5 --retry-connrefused http://localhost:3000
 
-      # Step 7: Stop the Docker container
+      # Step 8: Stop the Docker container
       - name: Stop Docker container
         run: docker ps -q | xargs -r docker stop
 

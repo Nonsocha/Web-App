@@ -1,0 +1,46 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow when code is pushed to the 'main' branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up SSH to access the EC2 instance
+      - name: Install SSH client
+        run: sudo apt-get install openssh-client -y
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.EC2_KEY }}
+
+      # Step 3: Copy project files to the EC2 instance
+      - name: Copy project to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/my-app
+
+      # Step 4: SSH into the EC2 instance and build/run the Docker container
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/${{ secrets.EC2_USER }}/my-app
+            # Build the Docker image
+            docker build -t my-app .
+            # Stop the old container if it's running
+            docker stop my-app-container || true
+            docker rm my-app-container || true
+            # Run the new container
+            docker run -d --name my-app-container -p 3000:3000 my-app
+            # Cleanup unused images and containers
+            docker system prune -f
+          EOF
+

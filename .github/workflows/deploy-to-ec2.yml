@@ -26,7 +26,7 @@ jobs:
       # Step 3: Copy project files to the EC2 instance
       - name: Copy project to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -r .Web-App ubuntu@3.145.79.173:/home/ubuntu/my-app
+          scp -o StrictHostKeyChecking=no -r .Web-App/github/workflows ubuntu@3.145.79.173:/home/ubuntu/my-app
 
       # Step 4: SSH into the EC2 instance and build/run the Docker container
       - name: Deploy to EC2
